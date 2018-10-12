@@ -1,96 +1,68 @@
-/* Copyright 2017 Intel Corporation
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
+package sawtooth.sdk.reactive.common.crypto;
 
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-------------------------------------------------------------------------------*/
-
-package sawtooth.sdk.client;
-
-import org.bitcoinj.core.DumpedPrivateKey;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import org.bitcoin.NativeSecp256k1;
+import org.bitcoin.NativeSecp256k1Util.AssertFailException;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
+import sawtooth.sdk.reactive.common.utils.FormattingUtils;
 
-import java.security.SecureRandom;
+public class SawtoothSigner {
 
-/** Signing has methods to manipulate bytes, Strings,
- *  and ECKeys to sign bytes and produce hex encoded Strings.
- *
- */
-public final class Signing {
+	public static ECKey generatePrivateKey(SecureRandom random) {
+		return new ECKey(random);
+	}
 
-  /**
-   * This class only has static methods, so the default constructor should be private.
-   */
-  private Signing() { };
+	public static String getPublicKey(ECKey privateKey) {
+		return ECKey.fromPrivate(privateKey.getPrivKey(), true).getPublicKeyAsHex();
+	}
 
-  /**
-   * The number of bytes of the signature produced.
-   */
-  private static final int NUM_SIGNATURE_BYTES = 64;
+	/**
+	 * Returns a bitcoin-style 64-byte compact signature.
+	 * @param privateKey the private key with which to sign
+	 * @param data the data to sign
+	 * @return String the signature
+// @formatter:off
+	  def sign(self, message, private_key):
+        try:
+            signature = private_key.secp256k1_private_key.ecdsa_sign(message)
+            signature = private_key.secp256k1_private_key \
+                .ecdsa_serialize_compact(signature)
 
-  /**
-   * Half of the number of bytes of the signature produced.
-   */
-  private static final int HALF_NUM_SIGNATURE_BYTES = 32;
+            return signature.hex()
+            
+// @formatter:on
+	 */
+	public static String signHexSequence(ECKey privateKey, byte[] data) {
 
-  /**
-   * Parameters necessary for reading a wif encoded String.
-   */
-  private static final NetworkParameters MAINNET = org.bitcoinj.params.MainNetParams.get();
+		return FormattingUtils.bytesToHex(generateCompactSig(privateKey, data)).toLowerCase();
+	}
 
-  /** Read in a wif encoded String and produce a ECKey private key.
-   *
-   * @param wif String encoded in the wif format.
-   * @return ECkey private key
-   */
-  public static ECKey readWif(final String wif) {
-    return DumpedPrivateKey.fromBase58(MAINNET, wif).getKey();
-  }
+	/**
+	 * Returns a bitcoin-style 64-byte compact signature.
+	 * @param privateKey the private key with which to sign
+	 * @param data the data to sign
+	 * @return String the signature
+	 */
+	public static String signASCII(ECKey privateKey, byte[] data) {
 
-  /** Generate an ECKey private key from an entropy enhancing random number generator.
-   *
-   * @param random random number generator
-   * @return ECKey private key
-   */
-  public static ECKey generatePrivateKey(final SecureRandom random) {
-    return new ECKey(random);
-  }
+		return new String(generateCompactSig(privateKey, data), StandardCharsets.US_ASCII);
+	}
 
-  /** Static method to return a public key from a private key.
-   *
-   * @param privateKey the private key
-   * @return String public key
-   */
-  public static String getPublicKey(final ECKey privateKey) {
-    return ECKey.fromPrivate(privateKey.getPrivKey(), true).getPublicKeyAsHex();
-  }
+	public static byte[] generateCompactSig(ECKey privateKey, byte[] data) {
+		Sha256Hash hash = Sha256Hash.of(data);
+		ECKey.ECDSASignature sig = privateKey.sign(hash);
 
-  /**
-   * Returns a bitcoin-style 64-byte compact signature.
-   * @param privateKey the private key with which to sign
-   * @param data the data to sign
-   * @return String the signature
-   */
-  public static String sign(final ECKey privateKey, final byte[] data) {
-    Sha256Hash hash = Sha256Hash.of(data);
-    ECKey.ECDSASignature sig = privateKey.sign(hash);
+		byte[] csig = new byte[64];
 
-    byte[] csig = new byte[NUM_SIGNATURE_BYTES];
+		System.arraycopy(Utils.bigIntegerToBytes(sig.r, 32), 0, csig, 0, 32);
+		System.arraycopy(Utils.bigIntegerToBytes(sig.s, 32), 0, csig, 32, 32);
+		return csig;
+	}
 
-    System.arraycopy(Utils.bigIntegerToBytes(sig.r, HALF_NUM_SIGNATURE_BYTES), 0, csig, 0, HALF_NUM_SIGNATURE_BYTES);
-    System.arraycopy(Utils.bigIntegerToBytes(sig.s, HALF_NUM_SIGNATURE_BYTES), 0, csig,
-        HALF_NUM_SIGNATURE_BYTES, HALF_NUM_SIGNATURE_BYTES);
-
-    return Utils.HEX.encode(csig);
-  }
+	public static byte[] signWithNativeSecp256k1(ECKey privateKey, Sha256Hash hashedData) throws AssertFailException {
+		return NativeSecp256k1.sign(hashedData.getBytes(), privateKey.getPrivKeyBytes());
+	}
 }
