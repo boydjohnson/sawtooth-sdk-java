@@ -26,7 +26,6 @@ import org.spongycastle.asn1.ASN1EncodableVector;
 import org.spongycastle.asn1.ASN1Integer;
 import org.spongycastle.asn1.DEROutputStream;
 import org.spongycastle.asn1.DERSequence;
-import org.spongycastle.util.encoders.Hex;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -36,10 +35,8 @@ import sawtooth.sdk.protobuf.Batch;
 import sawtooth.sdk.protobuf.BatchHeader;
 import sawtooth.sdk.protobuf.Message;
 import sawtooth.sdk.protobuf.TransactionHeader;
-import sawtooth.sdk.reactive.common.config.SawtoothConfiguration;
-import sawtooth.sdk.reactive.common.crypto.SawtoothSigner;
+import sawtooth.sdk.client.SawtoothSigner;
 import sawtooth.sdk.reactive.common.messaging.MessageFactory;
-import sawtooth.sdk.reactive.common.utils.FormattingUtils;
 
 /**
  * 
@@ -54,7 +51,6 @@ public class SigningTest {
 
   private static ECKey signerPrivateKey = null;
   private static MessageFactory mFact = null;
-  SawtoothConfiguration config = new SawtoothConfiguration();
   ThreadLocal<MessageDigest> MESSAGEDIGESTER_512 = new ThreadLocal<>();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SigningTest.class);
@@ -96,12 +92,12 @@ public class SigningTest {
    */
   @Test
   public void testPythonCompability() throws InvalidProtocolBufferException, AssertFailException {
-    byte[] headerSignature = FormattingUtils.hexStringToByteArray(
-        "dda4bef2b09232471b518fe66bbb8c6214b8ffe68fe90fab07c793d95d64f83f05ab32e6c4c75a12c1b9c45b3667da2395e74ec9d4b1886bdd9cc760dc9673a6");
-    byte[] header = FormattingUtils.hexStringToByteArray(
-        "0a423032626434663763646433666332353237333532343935303938343665663166353234383165613862363332303035346239613537313536333464316139643165361280016366346465326265373533636236636538646230336662633135303533353662366232316234306563613064666532666666666237626231393933663966323937643732383566326637343339653830653836623636303563336432653862613966626337346532303833663233306464326232363639623663336662363036");
-    byte[] publicKey = FormattingUtils
-        .hexStringToByteArray("02bd4f7cdd3fc252735249509846ef1f52481ea8b6320054b9a5715634d1a9d1e6");
+    byte[] headerSignature =
+        "dda4bef2b09232471b518fe66bbb8c6214b8ffe68fe90fab07c793d95d64f83f05ab32e6c4c75a12c1b9c45b3667da2395e74ec9d4b1886bdd9cc760dc9673a6".toString().getBytes();
+    byte[] header =
+        "0a423032626434663763646433666332353237333532343935303938343665663166353234383165613862363332303035346239613537313536333464316139643165361280016366346465326265373533636236636538646230336662633135303533353662366232316234306563613064666532666666666237626231393933663966323937643732383566326637343339653830653836623636303563336432653862613966626337346532303833663233306464326232363639623663336662363036".toString().getBytes();
+    byte[] publicKey =
+        "02bd4f7cdd3fc252735249509846ef1f52481ea8b6320054b9a5715634d1a9d1e6".toString().getBytes();
 
     byte[] derSignature = decompressSignature(headerSignature);
 
@@ -168,18 +164,18 @@ public class SigningTest {
   public void testManualTransactioHeaderSigning() throws AssertFailException {
 
     byte[] publicKey = Utils.bigIntegerToBytes(new BigInteger(1, signerPrivateKey.getPubKey()), 32);
-    String publicKeyHex = FormattingUtils.bytesToHex(publicKey);
+    String publicKeyHex = Utils.HEX.encode(publicKey);
 
     TransactionHeader.Builder thBuilder = TransactionHeader.newBuilder();
     byte[] payload = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".getBytes();
     thBuilder.setFamilyName("aaaaaaa");
     thBuilder.setFamilyVersion("0.0");
-    thBuilder.setSignerPublicKey(FormattingUtils.bytesToHex(signerPrivateKey.getPubKey()));
-    thBuilder.setBatcherPublicKey(FormattingUtils.bytesToHex(signerPrivateKey.getPubKey()));
+    thBuilder.setSignerPublicKey(Utils.HEX.encode(signerPrivateKey.getPubKey()));
+    thBuilder.setBatcherPublicKey(Utils.HEX.encode(signerPrivateKey.getPubKey()));
     thBuilder.setNonce(String.valueOf(Calendar.getInstance().getTimeInMillis()));
     MESSAGEDIGESTER_512.get().reset();
     MESSAGEDIGESTER_512.get().update(payload, 0, payload.length);
-    thBuilder.setPayloadSha512(FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.get().digest()));
+    thBuilder.setPayloadSha512(Utils.HEX.encode(MESSAGEDIGESTER_512.get().digest()));
 
     TransactionHeader theHeader = thBuilder.build();
     byte[] transactionHeaderByte = theHeader.toByteArray();
@@ -191,7 +187,7 @@ public class SigningTest {
 
     // Validation of the keys based on the Native library
     assertTrue(NativeSecp256k1.secKeyVerify(publicKey));
-    assertTrue(NativeSecp256k1.secKeyVerify(FormattingUtils.hexStringToByteArray(publicKeyHex)));
+    assertTrue(NativeSecp256k1.secKeyVerify(publicKeyHex.getBytes()));
 
     // Verifying signature from the Key
     assertTrue(signerPrivateKey.verify(transactionHeaderHashed, signature));
@@ -204,7 +200,7 @@ public class SigningTest {
         signerPrivateKey.getPubKey()));
 
     assertTrue(NativeSecp256k1.verify(transactionHeaderHashed.getBytes(), signature.encodeToDER(),
-        FormattingUtils.hexStringToByteArray(thBuilder.getSignerPublicKey())));
+        thBuilder.getSignerPublicKey().getBytes()));
 
   }
   
@@ -222,7 +218,7 @@ public class SigningTest {
     MESSAGEDIGESTER_512.get().reset();
     byte[] payloadBin = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa".getBytes();
     String hexFormattedDigest =
-        FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.get().digest(payloadBin));
+        Utils.HEX.encode(MESSAGEDIGESTER_512.get().digest(payloadBin));
 
     TransactionHeader tHeader = mFact.createTransactionHeader(hexFormattedDigest,
         Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), true, null);
@@ -246,7 +242,7 @@ public class SigningTest {
         signerPrivateKey.getPubKey()));
 
     assertTrue(NativeSecp256k1.verify(transactionHeaderHashed.getBytes(), signature.encodeToDER(),
-        FormattingUtils.hexStringToByteArray(tHeader.getSignerPublicKey())));
+              tHeader.getSignerPublicKey().getBytes()));
 
   }
 
@@ -265,7 +261,7 @@ public class SigningTest {
     Batch toSend = mFact.createBatch(Arrays.asList(intTX), true);
     BatchHeader constructedHeader = BatchHeader.parseFrom(toSend.getHeader());
     Assert.assertTrue(testPythonServerBatchValidation(constructedHeader,
-        FormattingUtils.hexStringToByteArray(toSend.getHeaderSignature())));
+        toSend.getHeaderSignature().getBytes()));
 
   }
 
@@ -306,7 +302,7 @@ public class SigningTest {
     Sha256Hash batchHeaderHashed = Sha256Hash.of(header.toByteArray());
 
     ECKey pubKey = ECKey.fromPublicOnly(
-        new BigInteger(FormattingUtils.hexStringToByteArray(header.getSignerPublicKey()))
+        new BigInteger(header.getSignerPublicKey().getBytes())
             .toByteArray());
 
     Assert.assertTrue(ECKey.decompressPoint(pubKey.getPubKeyPoint()).isValid(),
