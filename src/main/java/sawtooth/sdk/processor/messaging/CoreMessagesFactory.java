@@ -37,7 +37,8 @@ import sawtooth.sdk.reactive.common.utils.FormattingUtils;
  * <a href="https://github.com/CarvalhoLeonardo">GitHub</a>
  * <a href="https://br.linkedin.com/in/leonardocarvalho">LinkedIn</a>
  *
- *      Some of the messages that circulate are basic to Sawtooth, not bound to any Transaction Processor implementation.
+ *      Some of the messages that circulate are basic to Sawtooth,
+ *      not bound to any Transaction Processor implementation.
  *
  */
 public class CoreMessagesFactory {
@@ -91,7 +92,8 @@ public class CoreMessagesFactory {
 
   public final boolean isValidMerkleAddress(final String merkleAddress) {
     LOGGER.debug("Testing Address {}...",merkleAddress);
-    return merkleAddress != null && !merkleAddress.isEmpty() && merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
+    return merkleAddress != null && !merkleAddress.isEmpty() &&
+            merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
         && !merkleAddress.toLowerCase().chars().filter(c -> {
           return Character.digit(c, CHECKSTYLE_MAGIC_NUM_HEXADECIMAL_BASE) == -1;
         }).findFirst().isPresent();
@@ -105,7 +107,8 @@ public class CoreMessagesFactory {
    * @return a random String
    */
   protected final String generateId() {
-    return FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.digest(UUID.randomUUID().toString().getBytes())).substring(0, CHECKSTYLE_MAGIC_NUM_ID_LENGTH);
+    return FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.digest(
+            UUID.randomUUID().toString().getBytes())).substring(0, CHECKSTYLE_MAGIC_NUM_ID_LENGTH);
   }
 
 
