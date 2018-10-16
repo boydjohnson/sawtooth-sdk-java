@@ -25,18 +25,22 @@ public class SawtoothConfiguration {
   private final static Logger LOGGER = LoggerFactory.getLogger(SawtoothConfiguration.class);
 
   static {
-    if (LOGGER.isInfoEnabled())
+    if (LOGGER.isInfoEnabled()) {
       LOGGER.info("Registering Async logging...");
+    }
     System.setProperty(org.apache.logging.log4j.core.util.Constants.LOG4J_CONTEXT_SELECTOR,
         org.apache.logging.log4j.core.async.AsyncLoggerContextSelector.class.getName());
-    if (LOGGER.isInfoEnabled())
+    if (LOGGER.isInfoEnabled()) {
       LOGGER.info("Async logging enabled.");
+    }
 
 
-    if (LOGGER.isInfoEnabled())
+    if (LOGGER.isInfoEnabled()) {
       LOGGER.info("Registering Spongy Castle...");
+    }
     Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
-    if (LOGGER.isInfoEnabled())
+    if (LOGGER.isInfoEnabled()) {
       LOGGER.info("Spongy Castle registered.");
+    }
   }
 }
