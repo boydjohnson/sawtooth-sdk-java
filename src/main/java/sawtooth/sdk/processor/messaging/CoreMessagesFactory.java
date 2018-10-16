@@ -41,6 +41,9 @@ import sawtooth.sdk.reactive.common.utils.FormattingUtils;
  *
  */
 public class CoreMessagesFactory {
+  static final int CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH = 70;
+  static final int CHECKSTYLE_MAGIC_NUM_HEXADECIMAL_BASE = 16;
+  static final int CHECKSTYLE_MAGIC_NUM_ID_LENGTH = 22;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CoreMessagesFactory.class);
   MessageDigest MESSAGEDIGESTER_512 = null;
@@ -88,9 +91,9 @@ public class CoreMessagesFactory {
 
   public boolean isValidMerkleAddress(String merkleAddress) {
     LOGGER.debug("Testing Address {}...",merkleAddress);
-    return merkleAddress != null && !merkleAddress.isEmpty() && merkleAddress.length() == 70
+    return merkleAddress != null && !merkleAddress.isEmpty() && merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
         && !merkleAddress.toLowerCase().chars().filter(c -> {
-          return Character.digit(c, 16) == -1;
+          return Character.digit(c, CHECKSTYLE_MAGIC_NUM_HEXADECIMAL_BASE) == -1;
         }).findFirst().isPresent();
   }
 
@@ -102,7 +105,7 @@ public class CoreMessagesFactory {
    * @return a random String
    */
   protected String generateId() {
-    return FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.digest(UUID.randomUUID().toString().getBytes())).substring(0, 22);
+    return FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.digest(UUID.randomUUID().toString().getBytes())).substring(0, CHECKSTYLE_MAGIC_NUM_ID_LENGTH);
   }
 
 
