@@ -47,7 +47,7 @@ public class CoreMessagesFactory {
   static final int CHECKSTYLE_MAGIC_NUM_ID_LENGTH = 22;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CoreMessagesFactory.class);
-  MessageDigest MESSAGEDIGESTER_512 = null;
+  private static final MessageDigest MESSAGEDIGESTER_512 = null;
 
   public CoreMessagesFactory() throws NoSuchAlgorithmException {
     this("SHA-512");
@@ -92,8 +92,8 @@ public class CoreMessagesFactory {
 
   public final boolean isValidMerkleAddress(final String merkleAddress) {
     LOGGER.debug("Testing Address {}...",merkleAddress);
-    return merkleAddress != null && !merkleAddress.isEmpty() &&
-            merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
+    return merkleAddress != null && !merkleAddress.isEmpty()
+            && merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
         && !merkleAddress.toLowerCase().chars().filter(c -> {
           return Character.digit(c, CHECKSTYLE_MAGIC_NUM_HEXADECIMAL_BASE) == -1;
         }).findFirst().isPresent();
