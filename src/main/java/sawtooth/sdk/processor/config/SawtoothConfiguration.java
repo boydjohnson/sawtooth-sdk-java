@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 // @formatter:on
  */
 public class SawtoothConfiguration {
-  private final static Logger LOGGER = LoggerFactory.getLogger(SawtoothConfiguration.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SawtoothConfiguration.class);
 
   static {
     if (LOGGER.isInfoEnabled()) {
