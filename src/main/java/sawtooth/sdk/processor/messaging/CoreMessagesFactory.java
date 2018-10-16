@@ -42,30 +42,72 @@ import sawtooth.sdk.reactive.common.utils.FormattingUtils;
  *
  */
 public class CoreMessagesFactory {
+  /**
+   * A magic number to appease checkstyle.
+   */
   static final int CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH = 70;
+
+  /**
+   * A magic number to appease checkstyle.
+   */
   static final int CHECKSTYLE_MAGIC_NUM_HEXADECIMAL_BASE = 16;
+
+  /**
+   * A magic number to appease checkstyle.
+   */
   static final int CHECKSTYLE_MAGIC_NUM_ID_LENGTH = 22;
 
+  /**
+   * The class logger.
+   */
   private static final Logger LOGGER = LoggerFactory.getLogger(CoreMessagesFactory.class);
-  private static final MessageDigest MESSAGEDIGESTER_512 = null;
 
+  /**
+   * The hash creator.
+   */
+  private MessageDigest digester = null;
+
+  /**
+   * Default class constructor.
+   *
+   * Uses SHA-512
+   *
+   * @throws NoSuchAlgorithmException SHA-512 doesn't exist
+   */
   public CoreMessagesFactory() throws NoSuchAlgorithmException {
     this("SHA-512");
   }
 
+  /**
+   * Class constructor.
+   * @param digesterAlgo which digester algorithm to use
+   * @throws NoSuchAlgorithmException the selected algorithm doesn't exist
+   */
   public CoreMessagesFactory(final String digesterAlgo) throws NoSuchAlgorithmException {
     if (digesterAlgo == null || digesterAlgo.isEmpty()) {
       throw new NoSuchAlgorithmException("There is no empty Digester!");
     }
-    MESSAGEDIGESTER_512 = MessageDigest.getInstance(digesterAlgo);
+    digester = MessageDigest.getInstance(digesterAlgo);
   }
 
+  /**
+   * Creates ping request message.
+   * @param bbuffer message contents
+   * @return ping request message
+   * @throws InvalidProtocolBufferException protobuf-related error
+   */
   public final Message getPingRequest(final ByteBuffer bbuffer) throws InvalidProtocolBufferException {
     Message newMessage = Message.newBuilder().setContent(createPingRequest(bbuffer).toByteString())
         .setCorrelationId(this.generateId()).setMessageType(MessageType.PING_REQUEST).build();
     return newMessage;
   }
 
+  /**
+   * getPingRequest private proxy.
+   * @param bbuffer message contents
+   * @return ping request message
+   * @throws InvalidProtocolBufferException protobuf-related error
+   */
   private PingRequest createPingRequest(final ByteBuffer bbuffer) throws InvalidProtocolBufferException {
     PingRequest.Builder prb = PingRequest.newBuilder();
     if (bbuffer != null && bbuffer.hasRemaining()) {
@@ -78,6 +120,11 @@ public class CoreMessagesFactory {
     return ping;
   }
 
+  /**
+   * Creates ping response message.
+   * @param correlationId correlation id for the response
+   * @return ping response message.
+   */
   public final Message getPingResponse(final String correlationId) {
     Message newMessage = Message.newBuilder().setContent(createPingResponse().toByteString())
         .setCorrelationId(correlationId).setMessageType(MessageType.PING_RESPONSE).build();
@@ -85,11 +132,20 @@ public class CoreMessagesFactory {
     return newMessage;
   }
 
+  /**
+   * getPingResponse private proxy.
+   * @return ping response message
+   */
   private PingResponse createPingResponse() {
     PingResponse pong = PingResponse.newBuilder().build();
     return pong;
   }
 
+  /**
+   * Tests whether or not address is valid Merkle address.
+   * @param merkleAddress address to check
+   * @return whether or not address is valid Merkle address
+   */
   public final boolean isValidMerkleAddress(final String merkleAddress) {
     LOGGER.debug("Testing Address {}...", merkleAddress);
     return merkleAddress != null && !merkleAddress.isEmpty()
@@ -100,18 +156,23 @@ public class CoreMessagesFactory {
   }
 
   /**
-   * generate a random String using the sha-512 algorithm, to correlate sent messages with futures
+   * generate a random String using the sha-512 algorithm, to correlate sent messages with futures.
    *
    * Being random, we dont need to reset() it
    *
    * @return a random String
    */
   protected final String generateId() {
-    return FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.digest(
+    return FormattingUtils.bytesToHex(digester.digest(
             UUID.randomUUID().toString().getBytes())).substring(0, CHECKSTYLE_MAGIC_NUM_ID_LENGTH);
   }
 
 
+  /**
+   * Gets state response for message.
+   * @param mesg message to get state response for
+   * @return state response for message
+   */
   public final Map<String, ByteString> getStateResponse(final Message mesg) {
 
     Map<String, ByteString> result = new HashMap<>();
@@ -127,6 +188,11 @@ public class CoreMessagesFactory {
     return result;
   }
 
+  /**
+   * Creates state get response.
+   * @param entries entries to get state for
+   * @return state get response
+   */
   private TpStateGetResponse createTpStateGetResponse(final List<TpStateEntry> entries) {
     Optional<TpStateEntry> wrongAddressEntry =
         entries.stream().filter(str -> !isValidMerkleAddress(str.getAddress())).findFirst();
@@ -141,6 +207,11 @@ public class CoreMessagesFactory {
 
   }
 
+  /**
+   * Creates state request message.
+   * @param addresses addresses to create state request for
+   * @return state request message
+   */
   public final Message getStateRequest(final List<String> addresses) {
     Message newMessage = Message.newBuilder()
         .setContent(createTpStateGetRequest(addresses).toByteString())
@@ -149,6 +220,11 @@ public class CoreMessagesFactory {
     return newMessage;
   }
 
+  /**
+   * Creates state get request.
+   * @param addresses address to get state for
+   * @return state get request
+   */
   private TpStateGetRequest createTpStateGetRequest(final List<String> addresses) {
     Optional<String> wrongAddress =
         addresses.stream().filter(str -> !isValidMerkleAddress(str)).findFirst();
@@ -163,6 +239,12 @@ public class CoreMessagesFactory {
 
   }
 
+  /**
+   * Creates set state request message.
+   * @param contextId ID for message
+   * @param addressDataMap serializable data
+   * @return set state request message
+   */
   public final Message getSetStateRequest(final String contextId,
       final List<java.util.Map.Entry<String, ByteString>> addressDataMap) {
     Message newMessage = Message.newBuilder()
@@ -172,6 +254,12 @@ public class CoreMessagesFactory {
     return newMessage;
   }
 
+  /**
+   * Creates state set request message.
+   * @param contextId ID for request
+   * @param addressDataMap serializable data
+   * @return state set request message
+   */
   private TpStateSetRequest createTpStateSetRequest(final String contextId,
       final List<java.util.Map.Entry<String, ByteString>> addressDataMap) {
 
@@ -204,6 +292,12 @@ public class CoreMessagesFactory {
 
   }
 
+  /**
+   * Parses state set response.
+   * @param respMesg response message
+   * @return parsed state set response
+   * @throws InvalidProtocolBufferException protobuf-related error
+   */
   public final List<String> parseStateSetResponse(final Message respMesg)
       throws InvalidProtocolBufferException {
     TpStateSetResponse parsedExp = TpStateSetResponse.parseFrom(respMesg.getContent());
@@ -214,6 +308,11 @@ public class CoreMessagesFactory {
 
   }
 
+  /**
+   * Creates state delete request.
+   * @param addresses addresses to delete
+   * @return state delete request
+   */
   private TpStateDeleteRequest createTpStateDeleteRequest(final List<String> addresses) {
     Optional<String> wrongAddress =
         addresses.stream().filter(str -> !isValidMerkleAddress(str)).findFirst();
@@ -228,6 +327,11 @@ public class CoreMessagesFactory {
     return reqBuilder.build();
   }
 
+  /**
+   * Creates state delete response.
+   * @param addresses addresses to delete
+   * @return state delete response
+   */
   private TpStateDeleteResponse createTpStateDeleteResponse(final List<String> addresses) {
     Optional<String> wrongAddress =
         addresses.stream().filter(str -> !isValidMerkleAddress(str)).findFirst();
