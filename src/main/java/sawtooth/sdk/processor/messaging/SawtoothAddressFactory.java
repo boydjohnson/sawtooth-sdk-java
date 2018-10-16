@@ -15,8 +15,8 @@ import java.nio.ByteBuffer;
  */
 public interface SawtoothAddressFactory {
 
-  public String generateAddress(String... names);
+  String generateAddress(String... names);
 
-  public String generateAddress(ByteBuffer data);
+  String generateAddress(ByteBuffer data);
 
 }
