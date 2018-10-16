@@ -31,12 +31,12 @@ import sawtooth.sdk.protobuf.TpStateSetResponse;
 import sawtooth.sdk.reactive.common.utils.FormattingUtils;
 
 /**
- * 
+ *
  * @author Leonardo T. de Carvalho
- * 
+ *
  * <a href="https://github.com/CarvalhoLeonardo">GitHub</a>
  * <a href="https://br.linkedin.com/in/leonardocarvalho">LinkedIn</a>
- * 
+ *
  *      Some of the messages that circulate are basic to Sawtooth, not bound to any Transaction Processor implementation.
  *
  */
@@ -48,14 +48,14 @@ public class CoreMessagesFactory {
   public CoreMessagesFactory() throws NoSuchAlgorithmException {
     this("SHA-512");
   }
-  
+
   public CoreMessagesFactory(String digesterAlgo) throws NoSuchAlgorithmException {
     if (digesterAlgo == null || digesterAlgo.isEmpty()) {
       throw new NoSuchAlgorithmException("There is no empty Digester!");
     }
-    MESSAGEDIGESTER_512 = MessageDigest.getInstance(digesterAlgo);  
+    MESSAGEDIGESTER_512 = MessageDigest.getInstance(digesterAlgo);
   }
-  
+
   public Message getPingRequest(ByteBuffer bbuffer) throws InvalidProtocolBufferException {
     Message newMessage = Message.newBuilder().setContent(createPingRequest(bbuffer).toByteString())
         .setCorrelationId(this.generateId()).setMessageType(MessageType.PING_REQUEST).build();
@@ -85,7 +85,7 @@ public class CoreMessagesFactory {
     PingResponse pong = PingResponse.newBuilder().build();
     return pong;
   }
-  
+
   public boolean isValidMerkleAddress(String merkleAddress) {
     LOGGER.debug("Testing Address {}...",merkleAddress);
     return merkleAddress != null && !merkleAddress.isEmpty() && merkleAddress.length() == 70
@@ -93,10 +93,10 @@ public class CoreMessagesFactory {
           return Character.digit(c, 16) == -1;
         }).findFirst().isPresent();
   }
-  
+
   /**
    * generate a random String using the sha-512 algorithm, to correlate sent messages with futures
-   * 
+   *
    * Being random, we dont need to reset() it
    *
    * @return a random String
@@ -107,7 +107,7 @@ public class CoreMessagesFactory {
 
 
   public Map<String, ByteString> getStateResponse(Message mesg){
-    
+
     Map<String, ByteString> result = new HashMap<>();
     TpStateGetResponse.Builder parser = TpStateGetResponse.newBuilder();
     try {
@@ -117,10 +117,10 @@ public class CoreMessagesFactory {
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();
     }
-    
+
     return result;
   }
-  
+
   private TpStateGetResponse createTpStateGetResponse(List<TpStateEntry> entries) {
     Optional<TpStateEntry> wrongAddressEntry =
         entries.stream().filter(str -> !isValidMerkleAddress(str.getAddress())).findFirst();
