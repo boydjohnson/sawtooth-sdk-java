@@ -59,7 +59,7 @@ public class CoreMessagesFactory {
     MESSAGEDIGESTER_512 = MessageDigest.getInstance(digesterAlgo);
   }
 
-  public Message getPingRequest(final ByteBuffer bbuffer) throws InvalidProtocolBufferException {
+  public final Message getPingRequest(final ByteBuffer bbuffer) throws InvalidProtocolBufferException {
     Message newMessage = Message.newBuilder().setContent(createPingRequest(bbuffer).toByteString())
         .setCorrelationId(this.generateId()).setMessageType(MessageType.PING_REQUEST).build();
     return newMessage;
@@ -77,7 +77,7 @@ public class CoreMessagesFactory {
     return ping;
   }
 
-  public Message getPingResponse(final String correlationId) {
+  public final Message getPingResponse(final String correlationId) {
     Message newMessage = Message.newBuilder().setContent(createPingResponse().toByteString())
         .setCorrelationId(correlationId).setMessageType(MessageType.PING_RESPONSE).build();
 
@@ -89,7 +89,7 @@ public class CoreMessagesFactory {
     return pong;
   }
 
-  public boolean isValidMerkleAddress(final String merkleAddress) {
+  public final boolean isValidMerkleAddress(final String merkleAddress) {
     LOGGER.debug("Testing Address {}...",merkleAddress);
     return merkleAddress != null && !merkleAddress.isEmpty() && merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
         && !merkleAddress.toLowerCase().chars().filter(c -> {
@@ -104,12 +104,12 @@ public class CoreMessagesFactory {
    *
    * @return a random String
    */
-  protected String generateId() {
+  protected final String generateId() {
     return FormattingUtils.bytesToHex(MESSAGEDIGESTER_512.digest(UUID.randomUUID().toString().getBytes())).substring(0, CHECKSTYLE_MAGIC_NUM_ID_LENGTH);
   }
 
 
-  public Map<String, ByteString> getStateResponse(final Message mesg) {
+  public final Map<String, ByteString> getStateResponse(final Message mesg) {
 
     Map<String, ByteString> result = new HashMap<>();
     TpStateGetResponse.Builder parser = TpStateGetResponse.newBuilder();
@@ -138,7 +138,7 @@ public class CoreMessagesFactory {
 
   }
 
-  public Message getStateRequest(final List<String> addresses) {
+  public final Message getStateRequest(final List<String> addresses) {
     Message newMessage = Message.newBuilder()
         .setContent(createTpStateGetRequest(addresses).toByteString())
         .setCorrelationId(generateId()).setMessageType(MessageType.TP_STATE_GET_REQUEST).build();
@@ -160,7 +160,7 @@ public class CoreMessagesFactory {
 
   }
 
-  public Message getSetStateRequest(final String contextId,
+  public final Message getSetStateRequest(final String contextId,
       final List<java.util.Map.Entry<String, ByteString>> addressDataMap) {
     Message newMessage = Message.newBuilder()
         .setContent(createTpStateSetRequest(contextId, addressDataMap).toByteString())
@@ -201,7 +201,7 @@ public class CoreMessagesFactory {
 
   }
 
-  public List<String> parseStateSetResponse(final Message respMesg)
+  public final List<String> parseStateSetResponse(final Message respMesg)
       throws InvalidProtocolBufferException {
     TpStateSetResponse parsedExp = TpStateSetResponse.parseFrom(respMesg.getContent());
 
