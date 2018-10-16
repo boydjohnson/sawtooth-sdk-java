@@ -15,8 +15,18 @@ import java.nio.ByteBuffer;
  */
 public interface SawtoothAddressFactory {
 
+  /**
+   * Generates address from names.
+   * @param names names to generate the address for
+   * @return state address
+   */
   String generateAddress(String... names);
 
+  /**
+   * Generates address from data
+   * @param data data to generate the address for
+   * @return state address
+   */
   String generateAddress(ByteBuffer data);
 
 }

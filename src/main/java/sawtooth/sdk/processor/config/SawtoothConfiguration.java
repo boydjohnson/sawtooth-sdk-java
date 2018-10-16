@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 // @formatter:on
  */
 public class SawtoothConfiguration {
+  /**
+   * The class logger.
+   */
   private static final Logger LOGGER = LoggerFactory.getLogger(SawtoothConfiguration.class);
 
   static {
