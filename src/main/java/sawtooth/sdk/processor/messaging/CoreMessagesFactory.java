@@ -109,12 +109,12 @@ public class CoreMessagesFactory {
   }
 
 
-  public Map<String, ByteString> getStateResponse(final Message mesg){
+  public Map<String, ByteString> getStateResponse(final Message mesg) {
 
     Map<String, ByteString> result = new HashMap<>();
     TpStateGetResponse.Builder parser = TpStateGetResponse.newBuilder();
     try {
-      parser.mergeFrom(mesg.getContent()).build().getEntriesList().forEach(tpste ->{
+      parser.mergeFrom(mesg.getContent()).build().getEntriesList().forEach(tpste -> {
         result.put(tpste.getAddress(), tpste.getData());
       });
     } catch (InvalidProtocolBufferException e) {
@@ -205,7 +205,7 @@ public class CoreMessagesFactory {
       throws InvalidProtocolBufferException {
     TpStateSetResponse parsedExp = TpStateSetResponse.parseFrom(respMesg.getContent());
 
-    return parsedExp.getAddressesList().asByteStringList().stream().map(ead ->{
+    return parsedExp.getAddressesList().asByteStringList().stream().map(ead -> {
       return ead.toString(StandardCharsets.UTF_8);
     }).collect(Collectors.toList());
 
