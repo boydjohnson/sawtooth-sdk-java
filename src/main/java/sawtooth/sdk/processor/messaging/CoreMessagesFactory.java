@@ -91,7 +91,7 @@ public class CoreMessagesFactory {
   }
 
   public final boolean isValidMerkleAddress(final String merkleAddress) {
-    LOGGER.debug("Testing Address {}...",merkleAddress);
+    LOGGER.debug("Testing Address {}...", merkleAddress);
     return merkleAddress != null && !merkleAddress.isEmpty()
             && merkleAddress.length() == CHECKSTYLE_MAGIC_NUM_ADDRESS_LENGTH
         && !merkleAddress.toLowerCase().chars().filter(c -> {
