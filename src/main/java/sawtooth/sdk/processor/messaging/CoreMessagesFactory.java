@@ -42,7 +42,7 @@ import sawtooth.sdk.reactive.common.utils.FormattingUtils;
  */
 public class CoreMessagesFactory {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(CoreMessagesFactory.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CoreMessagesFactory.class);
   MessageDigest MESSAGEDIGESTER_512 = null;
 
   public CoreMessagesFactory() throws NoSuchAlgorithmException {
