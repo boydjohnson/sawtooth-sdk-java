@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
  *
  *  Basic bootstrap of some global properties of the packages:
  *
- *	- Asynchronous Logging
- *	- Spongy Castle registration on JCE
+ *  - Asynchronous Logging
+ *  - Spongy Castle registration on JCE
  *
 // @formatter:on
  */
